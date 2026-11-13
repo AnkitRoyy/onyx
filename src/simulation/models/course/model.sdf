@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="course">
+    <pose>0 0 0.4 0 0 0</pose>
+    <static>true</static>
+
+    <link name="course_link">
+      <visual name="course_visual">
+        <geometry>
+          <mesh>
+            <uri>meshes/TeknofestTrackFinal.dae</uri>
+            <scale>1 1 1</scale>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

@@ -45,40 +45,11 @@
       </link>
     </model>
 
-    <!-- Test obstacles for MPPI later. Delete or move freely. -->
-    <model name="obstacle_1">
-      <static>true</static>
-      <pose>5 0 0.5 0 0 0</pose>
-      <link name="link">
-        <collision name="collision">
-          <geometry><box><size>1 1 1</size></box></geometry>
-        </collision>
-        <visual name="visual">
-          <geometry><box><size>1 1 1</size></box></geometry>
-          <material>
-            <ambient>0.9 0.4 0.1 1</ambient>
-            <diffuse>0.9 0.4 0.1 1</diffuse>
-          </material>
-        </visual>
-      </link>
-    </model>
-
-    <model name="obstacle_2">
-      <static>true</static>
-      <pose>8 2 0.5 0 0 0.5</pose>
-      <link name="link">
-        <collision name="collision">
-          <geometry><box><size>1 1 1</size></box></geometry>
-        </collision>
-        <visual name="visual">
-          <geometry><box><size>1 1 1</size></box></geometry>
-          <material>
-            <ambient>0.9 0.4 0.1 1</ambient>
-            <diffuse>0.9 0.4 0.1 1</diffuse>
-          </material>
-        </visual>
-      </link>
-    </model>
+    <include>
+      <uri>model://course</uri>
+      <name>competition_course</name>
+      <pose>-8 -8 0.4 0 0 0</pose>
+    </include>
 
   </world>
 </sdf>

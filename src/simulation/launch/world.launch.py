@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, SetEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     LaunchConfiguration, PathJoinSubstitution, PythonExpression)
@@ -8,6 +8,10 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    course_model_path = PathJoinSubstitution([
+        FindPackageShare('simulation'),
+        'models',
+    ])
     world = PathJoinSubstitution([
         FindPackageShare('simulation'), 'worlds', 'tekno_world.sdf'])
 
@@ -32,6 +36,10 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'headless', default_value='false',
             description='true = no window (use for training).'),
+        SetEnvironmentVariable(
+            name='GZ_SIM_RESOURCE_PATH',
+            value=course_model_path,
+        ),
         gz_sim,
         clock_bridge,
     ])
