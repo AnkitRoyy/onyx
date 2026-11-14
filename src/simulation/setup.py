@@ -16,6 +16,8 @@ setup(
             glob('launch/*.launch.py')),
         (os.path.join('share', package_name, 'worlds'),
             glob('worlds/*')),
+        (os.path.join('share', package_name, 'rviz'),
+            glob('rviz/*.rviz')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -24,5 +26,9 @@ setup(
     description='Gazebo worlds and simulation scenario management',
     license='MIT',
     extras_require={'test': ['pytest']},
-    entry_points={'console_scripts': []},
+    entry_points={
+        'console_scripts': [
+            'onyx_gps_visualizer = simulation.gps_visualizer:main',
+        ],
+    },
 )
