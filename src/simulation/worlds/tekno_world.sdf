@@ -15,7 +15,7 @@
             name="gz::sim::systems::SceneBroadcaster"/>
     <plugin filename="gz-sim-physics-visual-system"
             name="gz::sim::systems::PhysicsVisual"/>
-       
+           
         <!-- Buoyancy System -->
     <plugin filename="gz-sim-buoyancy-system"
             name="gz::sim::systems::Buoyancy">
@@ -26,7 +26,7 @@
         <!-- Air above water -->
         <density_change>
           <above_depth>0.39</above_depth>
-          <density>1</density>
+          <density>1.225</density>
         </density_change>
       </graded_buoyancy>
 
