@@ -13,7 +13,24 @@
             name="gz::sim::systems::UserCommands"/>
     <plugin filename="gz-sim-scene-broadcaster-system"
             name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-physics-visual-system"
+            name="gz::sim::systems::PhysicsVisual"/>
+       
+        <!-- Buoyancy System -->
+    <plugin filename="gz-sim-buoyancy-system"
+            name="gz::sim::systems::Buoyancy">
+      <!-- Water density -->
+      <graded_buoyancy>
+        <default_density>4</default_density>
 
+        <!-- Air above water -->
+        <density_change>
+          <above_depth>0.39</above_depth>
+          <density>1</density>
+        </density_change>
+      </graded_buoyancy>
+
+    </plugin>
     <gravity>0 0 -9.81</gravity>
 
     <light type="directional" name="sun">
@@ -44,6 +61,21 @@
         </visual>
       </link>
     </model>
+
+    <model name="water_surface">
+      <static>true</static>
+      <pose>-5.8848 -8 0.2 0 0 0</pose>  <!-- center of the water region -->
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>3.2 3 0.4</size></box></geometry>
+            <material>
+              <ambient>0.1 0.3 0.6 0.5</ambient>
+              <diffuse>0.1 0.3 0.6 0.5</diffuse>
+              <transparency>0.3</transparency>
+            </material>
+        </visual>
+     </link>
+   </model>
 
     <include>
       <uri>model://course</uri>
