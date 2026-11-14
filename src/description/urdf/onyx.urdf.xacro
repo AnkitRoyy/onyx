@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="onyx">
+
+  <!-- =====================  EDIT THESE  ===================== -->
+  <!-- Real weighed mass of the whole robot (kg). 75.9 is only a placeholder:
+       SolidWorks had no material assigned, so its "mass" was just the volume. -->
+  <xacro:property name="robot_mass" value="75.9"/>
+  <!-- Mass of one tyre + rim (kg) -->
+  <xacro:property name="wheel_mass" value="3.5"/>
+  <!-- Max torque per wheel in Gazebo (N*m) - set from your motor + gearbox -->
+  <xacro:property name="wheel_torque" value="200"/>
+  <!-- Wheel friction. Skid steering needs mu2 (sideways) lower than mu1 -->
+  <xacro:property name="mu1" value="1.0"/>
+  <xacro:property name="mu2" value="0.6"/>
+
+  <!-- =====================  FROM THE CAD  ===================== -->
+  <xacro:property name="wheel_radius" value="0.2286"/>   <!-- 18 inch tyre -->
+  <xacro:property name="wheel_width"  value="0.12"/>
+  <xacro:property name="wheel_x"      value="0.4690"/>  <!-- half of wheelbase (0.938 m) -->
+  <xacro:property name="wheel_y"      value="0.6308"/>  <!-- half of track (1.262 m) -->
+  <xacro:property name="track"        value="${2*wheel_y}"/>
+
+  <!-- Body inertia from the body mesh (uniform density), per kg, scaled by the real body mass -->
+  <xacro:property name="body_mass"     value="${robot_mass - 4*wheel_mass}"/>
+
+  <xacro:property name="w_ixx" value="${wheel_mass*(3*wheel_radius*wheel_radius + wheel_width*wheel_width)/12}"/>
+  <xacro:property name="w_izz" value="${0.5*wheel_mass*wheel_radius*wheel_radius}"/>
+
+  <material name="body_grey"><color rgba="0.55 0.55 0.58 1"/></material>
+  <material name="tyre_black"><color rgba="0.08 0.08 0.08 1"/></material>
+
+  <!-- Ground-level frame -->
+  <link name="base_footprint"/>
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- base_link: x forward, y left, z up, origin at the middle of the four wheel centres -->
+  <link name="base_link">
+    <visual>
+      <geometry><mesh filename="package://description/meshes/onyx_body.stl"/></geometry>
+      <material name="body_grey"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.0026 0.0019 0.1808" rpy="0 0 0"/>
+      <geometry><box size="0.5591 0.7059 0.3353"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.0150 -0.0031 0.1585" rpy="0 0 0"/>
+      <mass value="${body_mass}"/>
+      <inertia ixx="${body_mass*0.0465}" ixy="${body_mass*-0.0000}" ixz="${body_mass*0.0002}"
+               iyy="${body_mass*0.0516}" iyz="${body_mass*0.0001}" izz="${body_mass*0.0831}"/>
+    </inertial>
+  </link>
+  <gazebo reference="base_link"><material>Gazebo/Grey</material></gazebo>
+
+  <!-- One wheel. Joint rpy turns the wheel's z axis onto the robot's +y, so a positive
+       joint velocity drives the robot forward. -->
+  <xacro:macro name="wheel" params="name x y">
+    <link name="${name}_wheel">
+      <visual>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+        <material name="tyre_black"/>
+      </visual>
+      <collision>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="${wheel_mass}"/>
+        <inertia ixx="${w_ixx}" ixy="0" ixz="0" iyy="${w_ixx}" iyz="0" izz="${w_izz}"/>
+      </inertial>
+    </link>
+    <joint name="${name}_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${name}_wheel"/>
+      <origin xyz="${x} ${y} 0" rpy="${-pi/2} 0 0"/>
+      <axis xyz="0 0 1"/>
+      <dynamics damping="0.05" friction="0.0"/>
+    </joint>
+    <gazebo reference="${name}_wheel">
+      <mu1>${mu1}</mu1>
+      <mu2>${mu2}</mu2>
+      <kp>500000.0</kp>
+      <kd>10.0</kd>
+      <minDepth>0.001</minDepth>
+      <material>Gazebo/Black</material>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- "Front" is +x. If the real front is the other end, swap front/rear names here. -->
+  <xacro:wheel name="front_left"  x="${wheel_x}"  y="${wheel_y}"/>
+  <xacro:wheel name="front_right" x="${wheel_x}"  y="${-wheel_y}"/>
+  <xacro:wheel name="rear_left"   x="${-wheel_x}" y="${wheel_y}"/>
+  <xacro:wheel name="rear_right"  x="${-wheel_x}" y="${-wheel_y}"/>
+
+  <!-- Skid-steer drive: two wheel pairs on one plugin, listens to /cmd_vel, publishes /odom -->
+  <gazebo>
+    <plugin name="skid_steer_drive" filename="libgazebo_ros_diff_drive.so">
+      <update_rate>50</update_rate>
+      <num_wheel_pairs>2</num_wheel_pairs>
+      <left_joint>front_left_wheel_joint</left_joint>
+      <right_joint>front_right_wheel_joint</right_joint>
+      <left_joint>rear_left_wheel_joint</left_joint>
+      <right_joint>rear_right_wheel_joint</right_joint>
+      <wheel_separation>${track}</wheel_separation>
+      <wheel_separation>${track}</wheel_separation>
+      <wheel_diameter>${2*wheel_radius}</wheel_diameter>
+      <wheel_diameter>${2*wheel_radius}</wheel_diameter>
+      <max_wheel_torque>${wheel_torque}</max_wheel_torque>
+      <max_wheel_acceleration>3.0</max_wheel_acceleration>
+      <command_topic>cmd_vel</command_topic>
+      <odometry_topic>odom</odometry_topic>
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_footprint</robot_base_frame>
+      <publish_odom>true</publish_odom>
+      <publish_odom_tf>true</publish_odom_tf>
+      <publish_wheel_tf>false</publish_wheel_tf>
+    </plugin>
+  </gazebo>
+
+</robot>
