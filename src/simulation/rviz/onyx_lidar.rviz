@@ -5,6 +5,9 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /Front Camera1
+        - /Aiming Camera1
+        - /Rear Camera1
         - /GPS Markers1
         - /LaserScan1
         - /RobotModel1
@@ -33,6 +36,42 @@ Visualization Manager:
       Name: RobotModel
       Visual Enabled: true
       Collision Enabled: false
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: Front Camera
+      Normalize Range: true
+      Topic:
+        Value: /front_cam/image
+        Reliability Policy: Best Effort
+        Durability Policy: Volatile
+      Value: true
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: Aiming Camera
+      Normalize Range: true
+      Topic:
+        Value: /aiming_cam/image
+        Reliability Policy: Best Effort
+        Durability Policy: Volatile
+      Value: true
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: Rear Camera
+      Normalize Range: true
+      Topic:
+        Value: /rear_cam/image
+        Reliability Policy: Best Effort
+        Durability Policy: Volatile
+      Value: true
     - Class: rviz_default_plugins/LaserScan
       Enabled: true
       Name: LiDAR Scan
