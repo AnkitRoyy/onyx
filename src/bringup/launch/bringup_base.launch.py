@@ -1,8 +1,10 @@
 from pathlib import Path
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, LogInfo, OpaqueFunction
-from launch.substitutions import LaunchConfiguration
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo, OpaqueFunction
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 
 
 def configure(context):
@@ -49,6 +51,17 @@ def configure(context):
 
 
 def generate_launch_description():
+    description_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([
+                FindPackageShare('description'),
+                'launch',
+                'description.launch.py',
+            ])
+        ),
+        launch_arguments={'use_sim_time': LaunchConfiguration('use_sim_time')}.items(),
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
@@ -70,5 +83,6 @@ def generate_launch_description():
             default_value='',
             description='Saved policy file required for RL evaluation or operation.',
         ),
+        description_launch,
         OpaqueFunction(function=configure),
     ])

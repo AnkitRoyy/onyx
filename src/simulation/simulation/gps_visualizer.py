@@ -3,10 +3,10 @@ from math import cos, isfinite, radians, sin, sqrt
 import signal
 
 import rclpy
-from gps_msgs.msg import GPSFix, GPSStatus
 from geometry_msgs.msg import Point
 from rclpy.node import Node
 from rclpy.signals import SignalHandlerOptions
+from sensor_msgs.msg import NavSatFix, NavSatStatus
 from visualization_msgs.msg import Marker
 
 
@@ -42,11 +42,11 @@ class GpsVisualizer(Node):
             Marker, '/gps/markers', 10)
         self.trail = deque(maxlen=MAX_TRAIL_POINTS)
         self.subscription = self.create_subscription(
-            GPSFix, '/gps/fix', self.on_gps_fix, 10)
+            NavSatFix, '/gps/fix', self.on_gps_fix, 10)
         self.has_logged_fix = False
 
-    def on_gps_fix(self, fix: GPSFix):
-        if fix.status.status < GPSStatus.STATUS_FIX:
+    def on_gps_fix(self, fix: NavSatFix):
+        if fix.status.status < NavSatStatus.STATUS_FIX:
             self.get_logger().warning(
                 f'GPS has no fix (status {fix.status.status}).')
             return
