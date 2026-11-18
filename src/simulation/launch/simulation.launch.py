@@ -29,13 +29,24 @@ def generate_launch_description():
     )
 
     description_root = PathJoinSubstitution([
-        FindPackagePrefix('description'), 'share'])
+        FindPackagePrefix('description'), 'share',
+    ])
+
+    course_model_path = PathJoinSubstitution([
+        FindPackagePrefix('simulation'),
+        'share',
+        'simulation',
+        'models',
+    ])
+
     resource_path = [
+        course_model_path,
+        ':',
         description_root,
         ':',
         EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value=''),
     ]
-
+    
     spawn_robot = TimerAction(
         period=5.0,
         actions=[Node(
