@@ -29,12 +29,15 @@ from gz.transport13 import Node as GazeboNode
 WORLD = 'onyx_arena'
 ROBOT = 'onyx'
 GRID = 0.25
-GRID_LIMIT = 18                 # Grid coordinates from -4.5 to +4.5 metres.
-BOX_HALF = 0.5                  # Obstacles in navigation_arena.sdf are 1 m boxes.
+GRID_LIMIT = 42                 # Grid coordinates from -10.5 to +10.5 metres.
+BOX_HALF = 0.2                  # Half-width of each cone's 0.4 m square base.
 ROBOT_RADIUS = 1.05             # Conservative enclosing circle for Onyx.
 CLEARANCE = 0.15
 INFLATION = ROBOT_RADIUS + CLEARANCE + GRID * math.sqrt(2.0) / 2.0
-OFFSTAGE = [(30.0, 30.0), (33.0, 30.0), (36.0, 30.0)]
+MAX_CONES = 10                  # Keep in sync with the models in the SDF world.
+OBSTACLE_COORD_LIMIT = 11.2    # Walls are at +/-12 m, inside surface.
+OFFSTAGE = [(30.0 + 3.0 * (i % 4), 30.0 + 3.0 * (i // 4))
+            for i in range(MAX_CONES)]
 
 
 def yaw_from_quaternion(q):
@@ -47,7 +50,7 @@ def normalize_angle(angle):
 
 
 def point_is_free(x, y, obstacles):
-    # The grid is already restricted to +/-4.5; the inner wall is at +/-6.
+    # The grid is restricted to +/-10.5; the inner wall is at +/-12.
     if abs(x) > GRID_LIMIT * GRID or abs(y) > GRID_LIMIT * GRID:
         return False
     for ox, oy in obstacles:
@@ -92,8 +95,8 @@ def connected_free_cells(obstacles):
 
 
 def make_scenario(seed, minimum, maximum):
-    if seed < 0 or not (0 <= minimum <= maximum <= 3):
-        raise ValueError('Seed must be nonnegative and obstacle limits must satisfy 0 <= min <= max <= 3.')
+    if seed < 0 or not (0 <= minimum <= maximum <= MAX_CONES):
+        raise ValueError(f'Seed must be nonnegative and obstacle limits must satisfy 0 <= min <= max <= {MAX_CONES}.')
     rng = random.Random(seed)
     count = rng.randint(minimum, maximum)
     for _ in range(100):
@@ -101,8 +104,8 @@ def make_scenario(seed, minimum, maximum):
         for _ in range(300):
             if len(obstacles) == count:
                 break
-            candidate = (round(rng.uniform(-5.2, 5.2), 2),
-                         round(rng.uniform(-5.2, 5.2), 2))
+            candidate = (round(rng.uniform(-OBSTACLE_COORD_LIMIT, OBSTACLE_COORD_LIMIT), 2),
+                         round(rng.uniform(-OBSTACLE_COORD_LIMIT, OBSTACLE_COORD_LIMIT), 2))
             if any(abs(candidate[0] - x) < 1.4 and
                    abs(candidate[1] - y) < 1.4 for x, y in obstacles):
                 continue
@@ -131,8 +134,8 @@ class ArenaEnv(Node):
     def __init__(self):
         super().__init__('arena_env')
         self.declare_parameter('seed', -1)
-        self.declare_parameter('min_obstacles', 0)
-        self.declare_parameter('max_obstacles', 3)
+        self.declare_parameter('min_obstacles', 3)
+        self.declare_parameter('max_obstacles', MAX_CONES)
         self.declare_parameter('goal_tolerance', 0.5)
         self.declare_parameter('publish_world_tf', False)
 
@@ -311,13 +314,14 @@ class ArenaEnv(Node):
             self.cmd_pub.publish(Twist())
             time.sleep(0.3)
             self.gz_call('remove', 'gz.msgs.Entity', 'name: "onyx" type: MODEL')
-            for i in range(3):
+            for i in range(MAX_CONES):
                 if i < len(scenario['obstacles']):
                     position = scenario['obstacles'][i]
                     x, y = position['x'], position['y']
                 else:
                     x, y = OFFSTAGE[i]
-                self.move_model(f'obstacle_{i + 1}', x, y, 0.5)
+                # The cone mesh is modelled with its base at z=0.
+                self.move_model(f'obstacle_{i + 1}', x, y, 0.0)
             goal = scenario['goal']
             self.move_model('goal_marker', goal['x'], goal['y'], 0.015)
             with self.data_lock:

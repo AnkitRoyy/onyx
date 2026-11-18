@@ -57,6 +57,8 @@ def generate_launch_description():
         parameters=[{
             'use_sim_time': True,
             'seed': ParameterValue(LaunchConfiguration('seed'), value_type=int),
+            'min_obstacles': ParameterValue(LaunchConfiguration('min_obstacles'), value_type=int),
+            'max_obstacles': ParameterValue(LaunchConfiguration('max_obstacles'), value_type=int),
             'publish_world_tf': ParameterValue(LaunchConfiguration('publish_world_tf'), value_type=bool),
         }],
     )
@@ -75,9 +77,14 @@ def generate_launch_description():
         DeclareLaunchArgument('headless', default_value='false'),
         DeclareLaunchArgument('seed', default_value='-1',
             description='-1 for random seed; otherwise repeat the same layout.'),
+        DeclareLaunchArgument('min_obstacles', default_value='3',
+            description='Minimum active cones on reset, from 0 to 10.'),
+        DeclareLaunchArgument('max_obstacles', default_value='10',
+            description='Maximum active cones on reset, from 0 to 10.'),
         DeclareLaunchArgument('publish_world_tf', default_value='false',
             description='Publish ground-truth world->odom; disable if localization publishes it.'),
         SetEnvironmentVariable('GZ_SIM_RESOURCE_PATH', [
+            FindPackageShare('simulation'), ':',
             PathJoinSubstitution([FindPackagePrefix('description'), 'share']), ':',
             EnvironmentVariable('GZ_SIM_RESOURCE_PATH', default_value='')]),
         description, gazebo, bridges, spawn, manager, gps_visualizer, rviz,

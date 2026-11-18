@@ -16,6 +16,8 @@ setup(
             glob('launch/*.launch.py')),
         (os.path.join('share', package_name, 'worlds'),
             glob('worlds/*')),
+        (os.path.join('share', package_name, 'meshes'),
+            glob('meshes/*')),
         (os.path.join('share', package_name, 'rviz'),
             glob('rviz/*.rviz')),
     ],
